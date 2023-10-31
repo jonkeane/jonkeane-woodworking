@@ -2,6 +2,12 @@
 command = "hugo --gc --minify"
 publish = "public"
 
+[context.production.environment]
+HUGO_VERSION = "0.115.4"
+
+[context.deploy-preview.environment]
+HUGO_VERSION = "0.115.4"
+
 [context.deploy-preview]
 command = "hugo mod get && hugo mod npm pack && npm install && hugo --gc --minify --buildFuture -b $DEPLOY_PRIME_URL"
 
