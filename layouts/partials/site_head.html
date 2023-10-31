@@ -20,8 +20,9 @@
     {{ printf `<link rel="%s" type="%s" href="%s" title="%s" />` .Rel .MediaType.Type .Permalink $.Site.Title | safeHTML }}
   {{ end -}}
   {{ partial "opengraph.html" . }}
-  {{ $main_css := resources.Get "css/styles.css" | resources.PostCSS (dict "inlineImports" true) | resources.Minify | resources.Fingerprint }}
-  <link rel="stylesheet" href="{{ $main_css.RelPermalink }}" />
+  <!-- {{ $main_css := resources.Get "css/styles.css" | resources.PostCSS (dict "inlineImports" true) | resources.Minify | resources.Fingerprint }}
+  <link rel="stylesheet" href="{{ $main_css.RelPermalink }}" /> -->
+  <link rel="stylesheet" href="css/styles.css" />
   {{ $custom_css := resources.Get "css/custom.css" | resources.PostCSS (dict "inlineImports" true) | resources.Minify | resources.Fingerprint }}
   <link rel="stylesheet" href="{{ $custom_css.RelPermalink }}" />
   {{ $js := resources.Get "js/main.js" | js.Build (dict "minify" true) | resources.Fingerprint }}
