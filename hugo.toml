@@ -5,7 +5,7 @@ disableKinds = ["taxonomy", "term"]
 defaultContentLanguage = "en"
 enableRobotsTXT = true
 timeZone = "America/Chicago"
-theme = "hugo-theme-gallery"
+theme = ["github.com/nicokaiser/hugo-theme-gallery"]
 
 [params]
   title = "jonkeane の mokkō"
@@ -44,6 +44,8 @@ theme = "hugo-theme-gallery"
   [[module.mounts]]
     source = "hugo_stats.json"
     target = "assets/watching/hugo_stats.json"
+  [[module.imports]]
+    path = 'github.com/nicokaiser/hugo-theme-gallery'
 
 [build]
   writeStats = true
