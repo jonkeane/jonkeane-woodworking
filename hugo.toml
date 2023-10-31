@@ -5,6 +5,7 @@ disableKinds = ["taxonomy", "term"]
 defaultContentLanguage = "en"
 enableRobotsTXT = true
 timeZone = "America/Chicago"
+baseURL = "https://mokkou.jonkeane.com"
 
 [params]
   title = "jonkeane の mokkō"
