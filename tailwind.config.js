@@ -1,7 +1,7 @@
 const defaultTheme = require("tailwindcss/defaultTheme");
 
 module.exports = {
-  content: ["./hugo_stats.json", "./layouts/**/*.html"],
+  content: ["./hugo_stats.json", "./layouts/**/*.html", "./assets/theme_layouts/**/*.html"],
   darkMode: "class",
   experimental: {
     optimizeUniversalDefaults: true,
