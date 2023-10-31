@@ -1,8 +1,0 @@
-{{ define "main" }}
-  {{- partial "page_header.html" . -}}
-  {{ if .Params.flickr_album }}
-    {{- partial "page_nanogallery.html" . -}}
-  {{ else }}
-    {{- partial "page_gallery.html" . -}}
-  {{ end }}
-{{ end }}
