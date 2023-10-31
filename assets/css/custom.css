@@ -1,0 +1,12 @@
+/* Custom overrides for JTK */
+
+#gallery-containers {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#gallery-containers > div.p-5 {
+    margin-top: auto;
+    margin-bottom: 0px;
+}

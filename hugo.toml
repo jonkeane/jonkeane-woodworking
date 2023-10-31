@@ -1,0 +1,67 @@
+title = "jonkeane の mokkō"
+languageCode = "en-us"
+copyright = "© Jonathan Keane"
+disableKinds = ["taxonomy", "term"]
+defaultContentLanguage = "en"
+enableRobotsTXT = true
+timeZone = "America/Chicago"
+theme = "hugo-theme-gallery"
+
+[params]
+  title = "jonkeane の mokkō"
+  description = "Woodorking projects"
+  defaultTheme = "light"
+
+
+[params.nanog]
+  flickr_userid = "65556368@N00"
+  thumbnailHoverEffect2 = "labelSlideUp|label_backgroundColor_rgba(50,50,50,0.01)_rgba(50,50,50,0.8)"
+  tagBlockList = "nogallery"
+
+[author]
+  name = "Jonathan Keane"
+
+[outputs]
+  page = ["HTML"]
+  home = ["HTML", "RSS"]
+  section = ["HTML"]
+
+[imaging]
+  resampleFilter = "CatmullRom"
+  quality = 75
+  [imaging.exif]
+    disableDate = false
+    disableLatLong = true
+    includeFields = "ImageDescription"
+
+[module]
+  [module.hugoVersion]
+    extended = false
+    min = "0.112.0"
+  [[module.mounts]]
+    source = "assets"
+    target = "assets"
+  [[module.mounts]]
+    source = "hugo_stats.json"
+    target = "assets/watching/hugo_stats.json"
+
+[build]
+  writeStats = true
+  [[build.cachebusters]]
+    source = "assets/watching/hugo_stats\\.json"
+    target = "styles\\.css"
+  [[build.cachebusters]]
+    source = "(postcss|tailwind)\\.config\\.js"
+    target = "css"
+  [[build.cachebusters]]
+    source = "assets/.*\\.(js)"
+    target = "js"
+  [[build.cachebusters]]
+    source = "assets/.*\\.(.*)$"
+    target = "$1"
+
+[menu]
+[[menu.footer]]
+  name = "GitHub"
+  url = "https://github.com/jonkeane/jonkeane-woodworking/"
+  weight = 3

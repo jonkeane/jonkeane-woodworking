@@ -1,0 +1,27 @@
+{
+  "comments": {
+    "dependencies": {},
+    "devDependencies": {
+      "@tailwindcss/typography": "hugo-theme-gallery",
+      "autoprefixer": "hugo-theme-gallery",
+      "postcss": "hugo-theme-gallery",
+      "postcss-cli": "hugo-theme-gallery",
+      "postcss-import": "hugo-theme-gallery",
+      "tailwindcss": "hugo-theme-gallery"
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.10",
+    "autoprefixer": "^10.4.15",
+    "postcss": "^8.4.29",
+    "postcss-cli": "^10.1.0",
+    "postcss-import": "^15.1.0",
+    "tailwindcss": "^3.3.3"
+  },
+  "private": "true",
+  "scripts": {
+    "build": "hugo --gc --minify",
+    "dev": "hugo server"
+  }
+}

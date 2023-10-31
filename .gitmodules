@@ -1,0 +1,3 @@
+[submodule "themes/hugo-theme-gallery"]
+	path = themes/hugo-theme-gallery
+	url = git@github.com:nicokaiser/hugo-theme-gallery.git
