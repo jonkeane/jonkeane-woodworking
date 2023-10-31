@@ -10,6 +10,8 @@ timeZone = "America/Chicago"
   title = "jonkeane の mokkō"
   description = "Woodorking projects"
   defaultTheme = "light"
+  # path to the favicon folder, under "static"
+  favicon = "favicons/"
 
 
 [params.nanog]
