@@ -14,3 +14,6 @@ hugo.linux
 
 # Node modules
 /node_modules/
+
+# also the vendored go modules
+/_vendor/

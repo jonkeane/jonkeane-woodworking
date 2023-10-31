@@ -1,5 +1,5 @@
 [build]
-command = "hugo mod get -u && hugo mod vendor && hugo mod npm pack && npm install && hugo"
+command = "hugo mod get -u && hugo mod vendor && hugo mod npm pack && npm install && hugo --gc --minify"
 publish = "public"
 
 [context.production.environment]
