@@ -5,7 +5,6 @@ disableKinds = ["taxonomy", "term"]
 defaultContentLanguage = "en"
 enableRobotsTXT = true
 timeZone = "America/Chicago"
-theme = ["github.com/nicokaiser/hugo-theme-gallery"]
 
 [params]
   title = "jonkeane の mokkō"
