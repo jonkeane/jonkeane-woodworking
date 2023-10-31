@@ -45,9 +45,6 @@ timeZone = "America/Chicago"
     target = "assets/watching/hugo_stats.json"
   [[module.imports]]
     path = 'github.com/nicokaiser/hugo-theme-gallery'
-    [[module.imports.mounts]]
-      source = "assets"
-      target = "assets"
 
 [build]
   writeStats = true
