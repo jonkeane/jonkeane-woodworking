@@ -6,7 +6,8 @@
 {{- $images := $.Resources.ByType "image" -}}
 {{ $featured := ($images.GetMatch (.Params.featured_image | default "*feature*")) | default (index $images 0) }}
 {{- with $featured -}}
-  <meta property="og:image" content="{{ $featured.Permalink | absURL }}" />
+  {{ $x1200x := $featured.Resize "1200x" }}
+  <meta property="og:image" content="{{ $x1200x.Permalink | absURL }}" />
 {{- end -}}
 
 {{- if .IsPage }}
