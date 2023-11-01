@@ -3,7 +3,7 @@ title: jonkeane の mokkō
 linktitle: Home
 description: Furniture, woodworking projects, and other craft
 #lastmod: 2023-07-05
-featured_image: martin-martz-wRuhOOaG-Z4-unsplash.jpg # default: first image in this directory
+featured_image: B0000089.jpg
 
 # featured_image on the home page is used for OpenGraph cards, etc.
 
