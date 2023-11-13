@@ -20,6 +20,10 @@ baseURL = "https://mokkou.jonkeane.com"
   thumbnailHoverEffect2 = "labelSlideUp|label_backgroundColor_rgba(50,50,50,0.01)_rgba(50,50,50,0.8)"
   tagBlockList = "nogallery"
 
+[services]
+  [services.googleAnalytics]
+    ID = 'G-ZHQ3VFK5J4'
+
 [author]
   name = "Jonathan Keane"
 

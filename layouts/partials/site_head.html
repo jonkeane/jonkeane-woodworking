@@ -7,7 +7,8 @@
     <title>{{ .Title }} – {{ .Site.Title }}</title>
   {{- end }}
   <link rel="canonical" href="{{ .Permalink }}" />
-
+  {{ template "_internal/google_analytics.html" . }}
+  
   {{ if .Site.Params.favicon }}
   <!-- Favicons
   ================================================== -->
