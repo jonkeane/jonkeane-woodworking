@@ -29,6 +29,27 @@ function page() {
   };
 }
 
+function drawerPage() {
+  const listeners = {};
+  const drawerListeners = {};
+  const classes = new Set();
+  const drawer = {
+    classList: {
+      add: name => classes.add(name),
+      remove: name => classes.delete(name),
+    },
+    addEventListener: (name, callback) => { drawerListeners[name] = callback; },
+  };
+  const details = { open: true, querySelector: selector => selector === 'summary' ? summary : null };
+  const summary = { addEventListener: (name, callback) => { listeners[name] = callback; } };
+  drawer.querySelector = selector => selector === 'details' ? details : null;
+  runInNewContext(source, {
+    document: { querySelector: selector => selector === '.photo-drawer' ? drawer : null },
+    window: { matchMedia: () => ({ matches: false }) },
+  });
+  return { classes, details, drawerListeners, listeners };
+}
+
 test('one large gesture navigates once', () => {
   const p = page();
   for (let time = 700; time < 2500; time += 50) p.wheel(time);
@@ -75,4 +96,16 @@ test('zoom and vertical scrolling do not navigate', () => {
   p.wheel(200, 100, { ctrlKey: true });
   p.wheel(400, 100, { deltaY: 150 });
   assert.deepEqual(p.visits, []);
+});
+
+test('closing details waits for the drawer animation', () => {
+  const p = drawerPage();
+  let prevented = false;
+  p.listeners.click({ preventDefault: () => { prevented = true; } });
+  assert.equal(prevented, true);
+  assert.equal(p.classes.has('is-closing'), true);
+  assert.equal(p.details.open, true);
+  p.drawerListeners.animationend({ animationName: 'photo-details-down' });
+  assert.equal(p.classes.has('is-closing'), false);
+  assert.equal(p.details.open, false);
 });

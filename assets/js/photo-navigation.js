@@ -1,5 +1,27 @@
 // Keep gestures on the photo so the filmstrip and details can scroll normally.
 const photo = document.querySelector('.flickr-photo .photo-full');
+const drawer = document.querySelector('.photo-drawer');
+const details = drawer?.querySelector?.('details');
+const summary = details?.querySelector?.('summary');
+
+// Native <details> removes its contents immediately when closed. Keep it open
+// until the drawer has slid down, then let its usual closed state take over.
+if (drawer && details && summary && typeof summary.addEventListener === 'function') {
+  let closing = false;
+  summary.addEventListener('click', (event) => {
+    if (!details.open || closing || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+
+    event.preventDefault();
+    closing = true;
+    drawer.classList.add('is-closing');
+    drawer.addEventListener('animationend', (animation) => {
+      if (animation.animationName !== 'photo-details-down') return;
+      drawer.classList.remove('is-closing');
+      details.open = false;
+      closing = false;
+    }, { once: true });
+  });
+}
 
 if (photo) {
   let start = null;

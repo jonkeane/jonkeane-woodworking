@@ -39,8 +39,16 @@ body:has(.flickr-photo) > footer { display: none; }
 .photo-nav > :last-child { text-align: right; }
 .flickr-photo > figure { min-height: 0; min-width: 0; }
 .photo-full { width: 100%; height: 100%; object-fit: contain; touch-action: pan-y pinch-zoom; }
-.photo-drawer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 30; }
-.photo-drawer details { background: inherit; }
+.photo-drawer {
+    --photo-drawer-background: #fff;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+}
+.dark .photo-drawer { --photo-drawer-background: #171717; }
+.photo-drawer details { background-color: var(--photo-drawer-background); }
 .photo-drawer summary {
     list-style: none;
     position: absolute;
@@ -48,12 +56,16 @@ body:has(.flickr-photo) > footer { display: none; }
     left: 1rem;
     padding: 0.5rem 1rem;
     border-radius: 1rem 1rem 0 0;
-    background: inherit;
+    background-color: var(--photo-drawer-background);
     box-shadow: 0 -4px 20px rgb(0 0 0 / 0.15);
+    /* Keep the tab and drawer visually continuous at their shared edge. */
+    clip-path: inset(-20px -20px 0 -20px);
+    z-index: 1;
     cursor: pointer;
 }
 .photo-drawer summary::-webkit-details-marker { display: none; }
 .photo-drawer:has(details[open]) { box-shadow: 0 -4px 20px rgb(0 0 0 / 0.15); animation: photo-details-up 0.3s ease-out; }
+.photo-drawer:has(details[open]).is-closing { animation: photo-details-down 0.3s ease-in; }
 .photo-details {
     max-height: 60vh;
     max-height: 60dvh;
@@ -74,10 +86,11 @@ body:has(.flickr-photo) > footer { display: none; }
 .photo-strip img { width: var(--thumb-size); height: var(--thumb-size); object-fit: cover; }
 .photo-strip [aria-current="page"] { outline: 2px solid currentColor; outline-offset: 2px; }
 @keyframes photo-details-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes photo-details-down { from { transform: translateY(0); } to { transform: translateY(100%); } }
 @media (max-width: 640px), (max-height: 600px) {
     .flickr-photo { --thumb-size: 55px; gap: 0.5rem; padding-inline: 1rem; }
     .photo-nav { gap: 0.5rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-    .photo-drawer:has(details[open]) { animation: none; }
+    .photo-drawer:has(details[open]), .photo-drawer:has(details[open]).is-closing { animation: none; }
 }
