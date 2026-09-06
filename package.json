@@ -22,6 +22,8 @@
   "private": "true",
   "scripts": {
     "build": "hugo --gc --minify",
-    "dev": "hugo server"
+    "dev": "hugo server",
+    "import:flickr": "go run ./cmd/flickrimport",
+    "test": "go test ./cmd/flickrimport && python3 scripts/test-gallery.py && node --test scripts/test-photo-navigation.cjs"
   }
 }

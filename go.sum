@@ -1,2 +1,6 @@
+github.com/cenkalti/backoff/v5 v5.0.3 h1:ZN+IMa753KfX5hd8vVaMixjnqRZ3y8CuJKRKj1xcsSM=
+github.com/cenkalti/backoff/v5 v5.0.3/go.mod h1:rkhZdG3JZukswDf7f0cwqPNk4K0sa+F97BxZthm/crw=
+github.com/dghubble/oauth1 v0.7.3 h1:EkEM/zMDMp3zOsX2DC/ZQ2vnEX3ELK0/l9kb+vs4ptE=
+github.com/dghubble/oauth1 v0.7.3/go.mod h1:oxTe+az9NSMIucDPDCCtzJGsPhciJV33xocHfcR2sVY=
 github.com/nicokaiser/hugo-theme-gallery v0.0.0-20231023205252-f5a7584cd956 h1:9yogGHJr6icyKkNqcn/q6jtfEdtyvtVnSnXYPFkUejI=
 github.com/nicokaiser/hugo-theme-gallery v0.0.0-20231023205252-f5a7584cd956/go.mod h1:DKnn4hE1/Z7pKoXSr42kBiRNn1Th3RW57oYoDQIx4gM=

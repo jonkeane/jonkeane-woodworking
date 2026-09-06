@@ -1,0 +1,38 @@
+{{/* Generate photo pages only for configured projects, ignoring stale cached albums. */}}
+{{ range readDir "content" }}
+  {{ $slug := .Name }}
+  {{ $index := printf "content/%s/_index.md" $slug }}
+  {{ if and .IsDir (fileExists $index) }}
+    {{ $frontmatter := index (split (readFile $index) "---") 1 | transform.Unmarshal }}
+    {{ with $frontmatter.flickr_album }}
+      {{ $setID := string . }}
+      {{ $sets := site.Data.flickr.photosets | default dict }}
+      {{ $ps := index $sets $slug }}
+      {{ if not $ps }}
+        {{ errorf "Missing Flickr data for %s. Run go run ./cmd/flickrimport before building." $slug }}
+      {{ else if or (ne $ps.stat "ok") (ne (string $ps.photoset.id) $setID) }}
+        {{ errorf "Invalid Flickr data for %s; run go run ./cmd/flickrimport." $slug }}
+      {{ else }}
+        {{ range $i, $photo := $ps.photoset.photo }}
+          {{ $blocked := intersect ($photo.tags | default slice) site.Params.flickr.blocked_tags }}
+          {{ if not $blocked }}
+            {{ $params := merge (dict
+              "flickr_id" $photo.id
+              "description" ($photo.description._content | plainify | htmlUnescape)
+              "private" ($frontmatter.private | default false)
+            ) $photo }}
+            {{ $.AddPage (dict
+              "kind" "page"
+              "path" (printf "%s/%s" $slug $photo.id)
+              "title" ($photo.title | default "Untitled")
+              "description" ($photo.description._content | plainify | htmlUnescape)
+              "type" "photo"
+              "weight" (add $i 1)
+              "params" $params
+            ) }}
+          {{ end }}
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+{{ end }}

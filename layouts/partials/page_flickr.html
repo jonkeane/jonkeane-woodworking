@@ -1,0 +1,13 @@
+<div class="mb-12 mt-9 px-6">
+  {{ with .Content }}<div class="prose mx-auto mb-9 dark:prose-invert">{{ . }}</div>{{ end }}
+  <div class="flickr-grid">
+    {{ range .RegularPages.ByWeight }}
+      {{ $thumbnail := or .Params.url_z .Params.url_c .Params.url_m .Params.url_l .Params.url_h .Params.url_k .Params.url_o }}
+      <a href="{{ .RelPermalink }}" title="{{ .Title }}">
+        <img src="{{ $thumbnail }}" alt="{{ .Description | default .Title }}" loading="lazy" decoding="async" />
+      </a>
+    {{ else }}
+      <p>No photos in this project yet.</p>
+    {{ end }}
+  </div>
+</div>

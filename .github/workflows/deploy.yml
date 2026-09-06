@@ -1,0 +1,90 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: Deploy target
+        type: choice
+        default: none
+        options: [none, preview, production]
+      clear_cache:
+        description: Clear Flickr metadata cache
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: woodworking-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: '0.152.2'
+          extended: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Test importer
+        run: go test ./cmd/flickrimport
+      - name: Restore Flickr metadata
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.clear_cache) && github.event.pull_request.head.repo.fork != true }}
+        uses: actions/cache@v4
+        with:
+          path: data/flickr
+          key: flickr-data-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: flickr-data-${{ runner.os }}-
+      - name: Import Flickr photos
+        if: github.event.pull_request.head.repo.fork != true
+        env:
+          FLICKR_API_KEY: ${{ secrets.FLICKR_API_KEY }}
+          FLICKR_CONSUMER_KEY: ${{ secrets.FLICKR_CONSUMER_KEY }}
+          FLICKR_CONSUMER_SECRET: ${{ secrets.FLICKR_CONSUMER_SECRET }}
+          FLICKR_OAUTH_TOKEN: ${{ secrets.FLICKR_OAUTH_TOKEN }}
+        run: |
+          token_file="$RUNNER_TEMP/flickr_oauth_token"
+          trap 'rm -f "$token_file"' EXIT
+          if [ -n "$FLICKR_OAUTH_TOKEN" ]; then
+            umask 077
+            printf '%s' "$FLICKR_OAUTH_TOKEN" > "$token_file"
+          fi
+          go run ./cmd/flickrimport -tokenFile "$token_file"
+      - name: Install site dependencies
+        run: |
+          hugo mod vendor
+          npm ci
+      - name: Verify static galleries with fixtures
+        run: python3 scripts/test-gallery.py
+      - name: Build site
+        if: github.event.pull_request.head.repo.fork != true
+        run: npm run build
+      - name: Deploy to Netlify
+        if: ${{ github.event.pull_request.head.repo.fork != true && (github.event_name != 'workflow_dispatch' || inputs.deploy_target != 'none') }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          DEPLOY_PRODUCTION: ${{ github.event_name == 'push' || github.event_name == 'schedule' || inputs.deploy_target == 'production' }}
+          DEPLOY_ALIAS: ${{ github.event_name == 'pull_request' && format('PR{0}', github.event.pull_request.number) || format('manual-{0}', github.run_number) }}
+        run: |
+          if [ "$DEPLOY_PRODUCTION" = 'true' ]; then
+            npx --yes netlify-cli deploy --prod --no-build --dir=public
+          else
+            npx --yes netlify-cli deploy --alias="$DEPLOY_ALIAS" --no-build --dir=public
+          fi

@@ -1,15 +1,12 @@
 [build]
-command = "hugo mod get -u && hugo mod vendor && hugo mod npm pack && npm install && hugo --gc --minify"
+command = "hugo mod vendor && npm ci && npm run import:flickr && npm run build"
 publish = "public"
 
-[context.production.environment]
-GO_VERSION = "1.21.3"
-HUGO_VERSION = "0.115.4"
-NODE_VERSION = "v20.5.0"
-NPM_VERSION  = "9.8.0"
+[build.environment]
+GO_VERSION = "1.23.0"
+HUGO_VERSION = "0.152.2"
+NODE_VERSION = "20"
 
-[context.deploy-preview.environment]
-GO_VERSION = "1.21.3"
-HUGO_VERSION = "0.115.4"
-NODE_VERSION = "v20.5.0"
-NPM_VERSION  = "9.8.0"
+[dev]
+command = "npm run dev"
+framework = "hugo"
