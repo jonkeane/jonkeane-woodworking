@@ -4,6 +4,10 @@ Project listings use hugo-theme-gallery. A Go importer (ported from
 `jonkeane/photo-site`) fetches Flickr metadata at build time. Hugo generates
 static project grids and one page per photo; images come from Flickr's CDN.
 Gallery browsing does not require JavaScript or expose API credentials.
+With JavaScript, project galleries use the theme's justified layout: photos keep
+their natural proportions in rows of equal height, with a 10px gap. Row heights
+adapt to the viewport; an incomplete final row stays left-aligned. Without
+JavaScript, the gallery falls back to an uncropped responsive grid.
 
 ## Development
 

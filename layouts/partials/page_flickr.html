@@ -4,10 +4,14 @@
     {{ range .RegularPages.ByWeight }}
       {{ $thumbnail := or .Params.url_z .Params.url_c .Params.url_m .Params.url_l .Params.url_h .Params.url_k .Params.url_o }}
       <a href="{{ .RelPermalink }}" title="{{ .Title }}">
-        <img src="{{ $thumbnail }}" alt="{{ .Description | default .Title }}" loading="lazy" decoding="async" />
+        {{/* Provisional dimensions reserve space for lazy images. The gallery
+             replaces these with each image's natural dimensions as it loads. */}}
+        <img src="{{ $thumbnail }}" width="4" height="3" alt="{{ .Description | default .Title }}" loading="lazy" decoding="async" />
       </a>
     {{ else }}
       <p>No photos in this project yet.</p>
     {{ end }}
   </div>
 </div>
+{{ $gallery := resources.Get "js/flickr-gallery.js" | js.Build (dict "minify" true) | resources.Fingerprint }}
+<script src="{{ $gallery.RelPermalink }}" defer></script>

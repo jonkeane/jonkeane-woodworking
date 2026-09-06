@@ -10,14 +10,17 @@
     margin-top: auto;
     margin-bottom: 0px;
 }
-/* The Flickr gallery and photo navigation work without JavaScript. */
+/* Natural proportions also serve as the gallery's no-JavaScript fallback. */
 .flickr-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    align-items: start;
     gap: 10px;
 }
 .flickr-grid a { display: block; overflow: hidden; border-radius: 0.5rem; }
-.flickr-grid img { width: 100%; height: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.flickr-grid img { display: block; width: 100%; height: auto; }
+.flickr-grid.is-justified { display: block; position: relative; }
+.flickr-grid.is-justified > a { top: 0; left: 0; }
 .flickr-grid a:hover { filter: brightness(0.9); }
 /* Reserve the header and filmstrip before sizing the image. */
 body:has(.flickr-photo) { height: 100vh; height: 100dvh; overflow: hidden; }
