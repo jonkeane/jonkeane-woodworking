@@ -88,23 +88,39 @@ type Photo struct {
 	Description struct {
 		Content string `json:"_content"`
 	} `json:"description"`
-	Tags           []string         `json:"tags"`
-	DateUpload     string           `json:"dateupload"`
-	DateTaken      string           `json:"datetaken"`
-	OwnerName      string           `json:"ownername"`
-	License        string           `json:"license"`
-	PathAlias      string           `json:"pathalias"`
-	URLSq          string           `json:"url_sq"`
-	URLT           string           `json:"url_t"`
-	URLS           string           `json:"url_s"`
-	URLN           string           `json:"url_n"`
-	URLM           string           `json:"url_m"`
-	URLZ           string           `json:"url_z"`
-	URLC           string           `json:"url_c"`
-	URLL           string           `json:"url_l"`
-	URLH           string           `json:"url_h"`
-	URLK           string           `json:"url_k"`
-	URLO           string           `json:"url_o"`
+	Tags       []string `json:"tags"`
+	DateUpload string   `json:"dateupload"`
+	DateTaken  string   `json:"datetaken"`
+	OwnerName  string   `json:"ownername"`
+	License    string   `json:"license"`
+	PathAlias  string   `json:"pathalias"`
+	URLSq      string   `json:"url_sq"`
+	URLT       string   `json:"url_t"`
+	URLS       string   `json:"url_s"`
+	URLN       string   `json:"url_n"`
+	URLM       string   `json:"url_m"`
+	URLZ       string   `json:"url_z"`
+	URLC       string   `json:"url_c"`
+	URLL       string   `json:"url_l"`
+	URLH       string   `json:"url_h"`
+	URLK       string   `json:"url_k"`
+	URLO       string   `json:"url_o"`
+	// Flickr dimensions may be JSON numbers or strings. Preserve both forms
+	// so Hugo can lay out thumbnails before the browser loads any images.
+	WidthZ         json.Number      `json:"width_z,omitempty"`
+	HeightZ        json.Number      `json:"height_z,omitempty"`
+	WidthC         json.Number      `json:"width_c,omitempty"`
+	HeightC        json.Number      `json:"height_c,omitempty"`
+	WidthM         json.Number      `json:"width_m,omitempty"`
+	HeightM        json.Number      `json:"height_m,omitempty"`
+	WidthL         json.Number      `json:"width_l,omitempty"`
+	HeightL        json.Number      `json:"height_l,omitempty"`
+	WidthH         json.Number      `json:"width_h,omitempty"`
+	HeightH        json.Number      `json:"height_h,omitempty"`
+	WidthK         json.Number      `json:"width_k,omitempty"`
+	HeightK        json.Number      `json:"height_k,omitempty"`
+	WidthO         json.Number      `json:"width_o,omitempty"`
+	HeightO        json.Number      `json:"height_o,omitempty"`
 	LastUpdate     string           `json:"lastupdate"`
 	OriginalFormat string           `json:"originalformat"`
 	Exif           *PhotoExifFields `json:"exif,omitempty"`

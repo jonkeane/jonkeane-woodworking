@@ -1,17 +1,34 @@
 <div class="mb-12 mt-9 px-6">
   {{ with .Content }}<div class="prose mx-auto mb-9 dark:prose-invert">{{ . }}</div>{{ end }}
-  <div class="flickr-grid">
-    {{ range .RegularPages.ByWeight }}
-      {{ $thumbnail := or .Params.url_z .Params.url_c .Params.url_m .Params.url_l .Params.url_h .Params.url_k .Params.url_o }}
-      <a href="{{ .RelPermalink }}" title="{{ .Title }}">
-        {{/* Provisional dimensions reserve space for lazy images. The gallery
-             replaces these with each image's natural dimensions as it loads. */}}
-        <img src="{{ $thumbnail }}" width="4" height="3" alt="{{ .Description | default .Title }}" loading="lazy" decoding="async" />
+  {{ $items := slice }}
+  {{ $hasDimensions := true }}
+  {{ range .RegularPages.ByWeight }}
+    {{ $page := . }}
+    {{ $thumbnail := "" }}
+    {{ $width := 0 }}
+    {{ $height := 0 }}
+    {{ range slice "z" "c" "m" "l" "h" "k" "o" }}
+      {{ if not $thumbnail }}
+        {{ $thumbnail = index $page.Params (printf "url_%s" .) | default "" }}
+        {{ $width = int (index $page.Params (printf "width_%s" .) | default 0) }}
+        {{ $height = int (index $page.Params (printf "height_%s" .) | default 0) }}
+      {{ end }}
+    {{ end }}
+    {{ if or (le $width 0) (le $height 0) }}
+      {{/* Older metadata remains usable as an uncropped grid. */}}
+      {{ $hasDimensions = false }}
+      {{ $width = 4 }}
+      {{ $height = 3 }}
+    {{ end }}
+    {{ $items = $items | append (dict "page" $page "src" $thumbnail "width" $width "height" $height) }}
+  {{ end }}
+  <div class="flickr-grid{{ if $hasDimensions }} has-dimensions{{ end }}">
+    {{ range $items }}
+      <a href="{{ .page.RelPermalink }}" title="{{ .page.Title }}" style="--photo-ratio: {{ div (float .width) .height }}">
+        <img src="{{ .src }}" width="{{ .width }}" height="{{ .height }}" alt="{{ .page.Description | default .page.Title }}" loading="lazy" decoding="async" />
       </a>
     {{ else }}
       <p>No photos in this project yet.</p>
     {{ end }}
   </div>
 </div>
-{{ $gallery := resources.Get "js/flickr-gallery.js" | js.Build (dict "minify" true) | resources.Fingerprint }}
-<script src="{{ $gallery.RelPermalink }}" defer></script>

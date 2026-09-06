@@ -35,6 +35,8 @@ func TestPhotoJSONUnmarshal(t *testing.T) {
 					"id": "456",
 					"title": "Sunset",
 					"url_h": "https://example.com/img_h.jpg",
+					"width_h": 1600,
+					"height_h": "1067",
 					"datetaken": "2022-01-01 12:00:00"
 				}
 			],
@@ -56,6 +58,17 @@ func TestPhotoJSONUnmarshal(t *testing.T) {
 	p := resp.Photoset.Photo[0]
 	if p.ID != "456" || p.Title != "Sunset" || p.URLH != "https://example.com/img_h.jpg" {
 		t.Errorf("photo parsed incorrectly: %+v", p)
+	}
+	encoded, err := json.Marshal(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var saved map[string]any
+	if err := json.Unmarshal(encoded, &saved); err != nil {
+		t.Fatal(err)
+	}
+	if saved["width_h"] != float64(1600) || saved["height_h"] != float64(1067) {
+		t.Fatalf("thumbnail dimensions lost on import: %s", encoded)
 	}
 }
 

@@ -10,7 +10,7 @@
     margin-top: auto;
     margin-bottom: 0px;
 }
-/* Natural proportions also serve as the gallery's no-JavaScript fallback. */
+/* CSS lays out galleries using the dimensions saved by the Flickr importer. */
 .flickr-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
@@ -19,8 +19,22 @@
 }
 .flickr-grid a { display: block; overflow: hidden; border-radius: 0.5rem; }
 .flickr-grid img { display: block; width: 100%; height: auto; }
-.flickr-grid.is-justified { display: block; position: relative; }
-.flickr-grid.is-justified > a { top: 0; left: 0; }
+.flickr-grid.has-dimensions {
+    --row-height: clamp(180px, 18vw, 280px);
+    display: flex;
+    flex-wrap: wrap;
+}
+.flickr-grid.has-dimensions > a {
+    /* Proportional bases and growth keep every image in a row equally tall. */
+    flex: var(--photo-ratio) 1 calc(var(--photo-ratio) * var(--row-height));
+    min-width: 0;
+    max-width: 100%;
+}
+/* Absorb spare space on the last row instead of enlarging a lone photo. */
+.flickr-grid.has-dimensions::after {
+    content: "";
+    flex: 1000000 1 var(--row-height);
+}
 .flickr-grid a:hover { filter: brightness(0.9); }
 /* Reserve the header and filmstrip before sizing the image. */
 body:has(.flickr-photo) { height: 100vh; height: 100dvh; overflow: hidden; }

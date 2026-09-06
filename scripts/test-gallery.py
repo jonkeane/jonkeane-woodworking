@@ -29,6 +29,8 @@ with tempfile.TemporaryDirectory(prefix="woodworking-gallery-") as tmp:
                 "description": {"_content": "A <b>woodworking</b> photo &amp; details"},
                 "url_z": "/fixture.jpg", "url_k": "/fixture.jpg", "url_o": "/fixture.jpg",
                 "url_sq": "/fixture.jpg", "exif": {"model": "Test camera", "iso": "100"},
+                "width_z": 640 if fid == "101" else "320",
+                "height_z": "320" if fid == "101" else 640,
             })
         (data / f"{project.parent.name}.json").write_text(json.dumps({
             "stat": "ok", "photoset": {"id": album, "photo": photos}
@@ -43,6 +45,9 @@ with tempfile.TemporaryDirectory(prefix="woodworking-gallery-") as tmp:
         slug = project.parent.name.lower()
         assert f"/{slug}/" in home, f"Missing project card: {slug}"
         gallery = (public / slug / "index.html").read_text()
+        assert "has-dimensions" in gallery
+        assert "--photo-ratio:2" in gallery and "--photo-ratio:0.5" in gallery
+        assert re.search(r'width=[\"\']?640[\"\']? height=[\"\']?320', gallery)
         assert f"/{slug}/101/" in gallery and f"/{slug}/103/" in gallery
         assert f"/{slug}/102/" not in gallery
         assert not (public / slug / "102/index.html").exists()
@@ -57,6 +62,15 @@ with tempfile.TemporaryDirectory(prefix="woodworking-gallery-") as tmp:
             assert "nanogallery" not in html and "api.flickr.com" not in html
     if os.environ.get("GALLERY_PREVIEW_DIR"):
         shutil.copytree(public, os.environ["GALLERY_PREVIEW_DIR"], dirs_exist_ok=True)
+    # Legacy caches must remain usable without a network fetch at build time.
+    legacy_file = next(data.glob("*.json"))
+    legacy = json.loads(legacy_file.read_text())
+    for photo in legacy["photoset"]["photo"]:
+        del photo["width_z"], photo["height_z"]
+    legacy_file.write_text(json.dumps(legacy))
+    subprocess.run(["hugo", "--source", str(site), "--cacheDir", str(site / "cache"), "--minify"], env=env, check=True)
+    legacy_gallery = (public / legacy_file.stem.lower() / "index.html").read_text()
+    assert "has-dimensions" not in legacy_gallery
     # No cached metadata must produce a clear build failure, not an empty gallery.
     next(data.glob("*.json")).unlink()
     missing = subprocess.run(["hugo", "--source", str(site), "--cacheDir", str(site / "cache")], env=env, capture_output=True, text=True)
