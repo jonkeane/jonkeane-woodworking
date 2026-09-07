@@ -52,6 +52,8 @@ The GitHub workflow builds and deploys main to Netlify, creates PR previews, and
 refreshes/deploys Flickr photos weekly. Manual runs support build-only, preview,
 or production and can clear the metadata cache. Fork PRs run tests with fixtures
 without accessing credentials or deploying.
+Each PR preview is linked from GitHub's deployment status and from one
+automatically updated PR comment.
 
 Configure these repository Actions secrets:
 
