@@ -1,0 +1,49 @@
+{{ define "main" }}
+  {{ $photos := .Parent.RegularPages.ByWeight }}
+  {{ $current := . }}
+  {{ $position := 0 }}
+  {{ range $i, $photo := $photos }}
+    {{ if eq $photo.RelPermalink $current.RelPermalink }}{{ $position = $i }}{{ end }}
+  {{ end }}
+  <article class="flickr-photo px-6">
+    <nav class="photo-nav" aria-label="Photo navigation">
+      <span>{{ if gt $position 0 }}{{ with index $photos (sub $position 1) }}<a rel="prev" href="{{ .RelPermalink }}">← Previous</a>{{ end }}{{ end }}</span>
+      <a href="{{ .Parent.RelPermalink }}">{{ .Parent.Title }}</a>
+      <span>{{ if lt (add $position 1) (len $photos) }}{{ with index $photos (add $position 1) }}<a rel="next" href="{{ .RelPermalink }}">Next →</a>{{ end }}{{ end }}</span>
+    </nav>
+    {{ $url := or .Params.url_k .Params.url_h .Params.url_l .Params.url_c .Params.url_z .Params.url_o }}
+    <figure>
+      <img class="photo-full" src="{{ $url }}" alt="{{ .Description | default .Title }}" fetchpriority="high" />
+      <figcaption class="photo-drawer bg-white dark:bg-neutral-900">
+        <details>
+          <summary>Details</summary>
+          <div class="photo-details">
+            <h1 class="text-2xl font-semibold">{{ .Title }}</h1>
+            {{ with .Description }}<p>{{ . }}</p>{{ end }}
+            {{ with .Params.exif }}
+              <ul class="photo-exif" aria-label="Photo details">
+                {{ with .model }}<li>{{ . }}</li>{{ end }}
+                {{ with .lens }}<li>{{ . }}</li>{{ end }}
+                {{ with .focallength }}<li>{{ . }}</li>{{ end }}
+                {{ with .exposure }}<li>{{ . }} sec</li>{{ end }}
+                {{ with .fstop }}<li class="photo-fstop">{{ . }}</li>{{ end }}
+                {{ with .iso }}<li>ISO {{ . }}</li>{{ end }}
+              </ul>
+            {{ end }}
+            {{ with .Params.tags }}<p class="photo-tags">{{ range . }}<span class="photo-tag">{{ . }}</span> {{ end }}</p>{{ end }}
+            <p><a href="{{ .Params.url_o | default $url }}">Original image</a></p>
+          </div>
+        </details>
+      </figcaption>
+    </figure>
+    <nav class="photo-strip" aria-label="Project photos">
+      {{ range $photos }}
+        <a href="{{ .RelPermalink }}" {{ if eq .RelPermalink $current.RelPermalink }}aria-current="page"{{ end }}>
+          <img src="{{ or .Params.url_sq .Params.url_s .Params.url_z }}" alt="{{ .Title }}" loading="lazy" />
+        </a>
+      {{ end }}
+    </nav>
+  </article>
+  {{ $navigation := resources.Get "js/photo-navigation.js" | js.Build (dict "minify" true) | resources.Fingerprint }}
+  <script src="{{ $navigation.RelPermalink }}" defer></script>
+{{ end }}

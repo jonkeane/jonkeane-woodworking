@@ -3,12 +3,17 @@
 <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}" />
 <meta property="og:url" content="{{ .Permalink | absURL }}" />
 
+{{ if .Params.flickr_id }}
+  <meta property="og:image" content="{{ or .Params.url_l .Params.url_h .Params.url_z }}" />
+{{ else }}
 {{- $images := $.Resources.ByType "image" -}}
 {{ $featured := ($images.GetMatch (.Params.featured_image | default "*feature*")) | default (index $images 0) }}
 {{- with $featured -}}
   {{ $x1200x := $featured.Resize "1200x" }}
   <meta property="og:image" content="{{ $x1200x.Permalink | absURL }}" />
 {{- end -}}
+
+{{ end }}
 
 {{- if .IsPage }}
   {{- $iso8601 := "2006-01-02T15:04:05-07:00" -}}

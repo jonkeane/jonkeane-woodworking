@@ -17,3 +17,8 @@ hugo.linux
 
 # also the vendored go modules
 /_vendor/
+
+# Build-time Flickr metadata and importer
+/data/flickr/
+/flickrimport
+/.flickr_oauth_token

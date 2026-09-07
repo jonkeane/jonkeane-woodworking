@@ -15,16 +15,15 @@ baseURL = "https://mokkou.jonkeane.com"
   favicon = "favicons/"
 
 
-[params.nanog]
-  flickr_userid = "65556368@N00"
-  thumbnailHoverEffect2 = "labelSlideUp|label_backgroundColor_rgba(50,50,50,0.01)_rgba(50,50,50,0.8)"
-  tagBlockList = "nogallery"
+[params.flickr]
+  user_id = "65556368@N00"
+  blocked_tags = ["nogallery"]
 
 [services]
   [services.googleAnalytics]
     ID = 'G-ZHQ3VFK5J4'
 
-[author]
+[params.author]
   name = "Jonathan Keane"
 
 [outputs]
@@ -43,7 +42,7 @@ baseURL = "https://mokkou.jonkeane.com"
 [module]
   [module.hugoVersion]
     extended = false
-    min = "0.112.0"
+    min = "0.152.2"
   [[module.mounts]]
     source = "assets"
     target = "assets"
