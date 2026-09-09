@@ -49,6 +49,11 @@
   {{ partial "opengraph.html" . }}
   {{ $main_css := resources.Get "css/styles.css" | css.PostCSS (dict "inlineImports" true) | resources.Minify | resources.Fingerprint }}
   <link rel="stylesheet" href="{{ $main_css.RelPermalink }}" />
+  {{ if eq .Type "photo" }}
+    {{ $swiper_css := slice (resources.Get "node_modules/swiper/swiper.css") (resources.Get "node_modules/swiper/modules/zoom.css") | resources.Concat "css/photo-swiper.css" | resources.Minify | resources.Fingerprint }}
+    <link rel="stylesheet" href="{{ $swiper_css.RelPermalink }}" />
+    <script>document.documentElement.classList.toggle('photo-only', location.hash === '#photo-only');</script>
+  {{ end }}
   {{ $custom_css := resources.Get "css/custom.css" | css.PostCSS (dict "inlineImports" true) | resources.Minify | resources.Fingerprint }}
   <link rel="stylesheet" href="{{ $custom_css.RelPermalink }}" />
   {{ $script := "js/main.js" }}

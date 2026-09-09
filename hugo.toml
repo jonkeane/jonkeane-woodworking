@@ -49,6 +49,9 @@ baseURL = "https://mokkou.jonkeane.com"
   [[module.mounts]]
     source = "hugo_stats.json"
     target = "assets/watching/hugo_stats.json"
+  [[module.mounts]]
+    source = "node_modules"
+    target = "assets/node_modules"
   [[module.imports]]
     path = 'github.com/nicokaiser/hugo-theme-gallery'
 

@@ -8,7 +8,12 @@ Project galleries use CSS flexbox and the thumbnail dimensions saved by the
 importer to form full-width rows of equally tall, uncropped photos with a 10px
 gap. Row heights adapt to the viewport; a short final row stays left-aligned.
 The layout is the same with JavaScript enabled or disabled. JavaScript supports
-the site's menu and photo gestures, but does not lay out the Flickr galleries.
+the site's menu, while photo pages use Swiper for swipe navigation, pinch zoom,
+and panning. Explicit prefetching of adjacent pages and images is disabled. Each
+photo page keeps its ordinary image as a no-JavaScript fallback.
+Double-clicking or double-tapping the viewer opens an image-only viewport; press
+Escape or repeat the gesture to restore the page controls. Mouse dragging and
+horizontal trackpad gestures navigate on desktop.
 Re-run `npm run import:flickr` for metadata
 created before dimensions were saved; older metadata falls back to an uncropped
 responsive grid until refreshed.

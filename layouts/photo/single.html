@@ -13,7 +13,19 @@
     </nav>
     {{ $url := or .Params.url_k .Params.url_h .Params.url_l .Params.url_c .Params.url_z .Params.url_o }}
     <figure>
-      <img class="photo-full" src="{{ $url }}" alt="{{ .Description | default .Title }}" fetchpriority="high" />
+      {{/* Preserve the ordinary image for intrinsic sizing and as the no-JavaScript fallback. */}}
+      <img class="photo-full photo-original" src="{{ $url }}" alt="{{ .Description | default .Title }}" fetchpriority="high" />
+      <div class="swiper photo-swiper" tabindex="0" role="region" aria-label="Photo viewer">
+        <div class="swiper-wrapper">
+          {{ if gt $position 0 }}
+            {{ partial "photo/slide.html" (dict "page" (index $photos (sub $position 1)) "current" false) }}
+          {{ end }}
+          {{ partial "photo/slide.html" (dict "page" . "current" true) }}
+          {{ if lt (add $position 1) (len $photos) }}
+            {{ partial "photo/slide.html" (dict "page" (index $photos (add $position 1)) "current" false) }}
+          {{ end }}
+        </div>
+      </div>
       <figcaption class="photo-drawer bg-white dark:bg-neutral-900">
         <details>
           <summary>Details</summary>
@@ -44,6 +56,6 @@
       {{ end }}
     </nav>
   </article>
-  {{ $navigation := resources.Get "js/photo-navigation.js" | js.Build (dict "minify" true) | resources.Fingerprint }}
+  {{ $navigation := resources.Get "js/photo-swiper.js" | js.Build (dict "target" "es2017" "minify" true) | resources.Fingerprint }}
   <script src="{{ $navigation.RelPermalink }}" defer></script>
 {{ end }}

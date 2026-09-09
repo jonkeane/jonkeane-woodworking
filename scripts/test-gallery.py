@@ -55,6 +55,12 @@ with tempfile.TemporaryDirectory(prefix="woodworking-gallery-") as tmp:
         last = (public / slug / "103/index.html").read_text()
         assert re.search(r'rel=[\"\']?next[\"\']? href=[\"\']?/' + slug + r'/103/', first)
         assert re.search(r'rel=[\"\']?prev[\"\']? href=[\"\']?/' + slug + r'/101/', last)
+        assert 'class="swiper photo-swiper"' in first
+        assert re.search(r'data-current=[\"\']?true', first)
+        assert re.search(r'data-photo-url=[\"\']?/' + slug + r'/103/', first)
+        assert re.search(r'loading=[\"\']?lazy', first) and re.search(r'loading=[\"\']?eager', first)
+        assert not re.search(r'rel=[\"\']?prefetch', first)
+        assert 0 <= first.find("photo-swiper.min") < first.find("custom.min"), "Site overrides must follow Swiper CSS"
         assert "Test camera" in first and "ISO 100" in first
         assert "map[" not in first, "Description must be text, not a serialized map"
         assert "A woodworking photo" in first, first[first.index("<figcaption"):first.index("</figcaption>")]
