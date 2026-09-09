@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"image"
+	"image/png"
 	"io"
 	"net/http"
 	"os"
@@ -132,5 +135,145 @@ func TestExtractBlockedTag(t *testing.T) {
 	tags := extractTagsFromInfo(json.RawMessage(`{"tags":{"tag":[{"raw":"nogallery"},{"raw":"hand cut joinery"}]}}`))
 	if len(tags) != 2 || tags[0] != "nogallery" || tags[1] != "hand cut joinery" {
 		t.Fatalf("tags changed: %v", tags)
+	}
+}
+
+func testImage(t *testing.T) []byte {
+	t.Helper()
+	var b bytes.Buffer
+	if err := png.Encode(&b, image.NewRGBA(image.Rect(0, 0, 2, 3))); err != nil {
+		t.Fatal(err)
+	}
+	return b.Bytes()
+}
+
+func TestGalleryImageCache(t *testing.T) {
+	body := testImage(t)
+	calls := 0
+	client := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		if r.Header.Get("Accept-Encoding") != "identity" {
+			t.Fatal("image downloads must not request gzip from Flickr")
+		}
+		if r.UserAgent() != "woodworking-flickrimport" {
+			t.Fatal("image downloads must identify the importer")
+		}
+		calls++
+		return &http.Response{StatusCode: 200, Body: io.NopCloser(bytes.NewReader(body))}, nil
+	})}
+	ps := &PhotosetsGetPhotosResp{}
+	ps.Photoset.Photo = []Photo{{ID: "1", URLZ: "https://example.com/thumb.png", URLK: "https://example.com/large.png", URLH: "https://example.com/unused.png"}}
+	dir := t.TempDir()
+	run := func(want int) {
+		t.Helper()
+		if err := downloadGalleryImages(context.Background(), client, dir, ps); err != nil {
+			t.Fatal(err)
+		}
+		if calls != want {
+			t.Fatalf("download requests = %d; want %d", calls, want)
+		}
+	}
+	run(2)
+	p := &ps.Photoset.Photo[0]
+	if p.ThumbnailAsset == "" || p.FullAsset == "" || p.ThumbnailAsset == p.FullAsset {
+		t.Fatalf("missing distinct image paths: %+v", p)
+	}
+	for _, path := range []string{p.ThumbnailAsset, p.FullAsset} {
+		b, err := os.ReadFile(filepath.Join(dir, path))
+		if err != nil || !bytes.Equal(b, body) {
+			t.Fatalf("missing downloaded bytes: %s: %v", path, err)
+		}
+	}
+	p.LastUpdate = "9999999999" // Tags/EXIF edits do not change the image.
+	run(2)
+	if err := os.Remove(filepath.Join(dir, p.ThumbnailAsset)); err != nil {
+		t.Fatal(err)
+	}
+	run(3)
+	if err := os.WriteFile(filepath.Join(dir, p.FullAsset), []byte("broken"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	run(4)
+	oldFull := p.FullAsset
+	p.URLK = "https://example.com/replaced.png"
+	run(5)
+	if oldFull == p.FullAsset {
+		t.Fatal("replacement reused old image path")
+	}
+	// A second album/photo using the same URLs shares the downloaded files.
+	ps.Photoset.Photo = append(ps.Photoset.Photo, ps.Photoset.Photo[0])
+	run(5)
+}
+
+func TestGalleryImageFallbacks(t *testing.T) {
+	body := testImage(t)
+	for _, field := range []string{"c", "m", "l", "h", "k", "o"} {
+		t.Run(field, func(t *testing.T) {
+			var p Photo
+			if err := json.Unmarshal([]byte(`{"id":"1","url_`+field+`":"https://example.com/fallback.png"}`), &p); err != nil {
+				t.Fatal(err)
+			}
+			// The viewer's existing fallbacks do not include medium; give it an original.
+			if field == "m" {
+				p.URLO = p.URLM
+			}
+			ps := &PhotosetsGetPhotosResp{}
+			ps.Photoset.Photo = []Photo{p}
+			calls := 0
+			client := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+				calls++
+				return &http.Response{StatusCode: 200, Body: io.NopCloser(bytes.NewReader(body))}, nil
+			})}
+			if err := downloadGalleryImages(context.Background(), client, t.TempDir(), ps); err != nil {
+				t.Fatal(err)
+			}
+			if calls != 1 || ps.Photoset.Photo[0].ThumbnailAsset != ps.Photoset.Photo[0].FullAsset {
+				t.Fatal("shared fallback should download once")
+			}
+		})
+	}
+	ps := &PhotosetsGetPhotosResp{}
+	ps.Photoset.Photo = []Photo{{ID: "missing"}}
+	if err := downloadGalleryImages(context.Background(), nil, t.TempDir(), ps); err == nil {
+		t.Fatal("missing image URLs must fail")
+	}
+}
+
+type interruptedReader struct{}
+
+func (interruptedReader) Read([]byte) (int, error) { return 0, errors.New("connection interrupted") }
+
+func TestDownloadPhotoFailureIsAtomic(t *testing.T) {
+	for _, mode := range []string{"http", "html", "empty", "interrupted"} {
+		t.Run(mode, func(t *testing.T) {
+			dir := t.TempDir()
+			dest := filepath.Join(dir, "photo.png")
+			original := testImage(t)
+			if err := os.WriteFile(dest, original, 0644); err != nil {
+				t.Fatal(err)
+			}
+			client := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+				resp := &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(""))}
+				switch mode {
+				case "http":
+					resp.StatusCode = 403
+				case "html":
+					resp.Body = io.NopCloser(strings.NewReader("<html>Access denied</html>"))
+				case "interrupted":
+					resp.Body = io.NopCloser(io.MultiReader(bytes.NewReader(original[:10]), interruptedReader{}))
+				}
+				return resp, nil
+			})}
+			if err := downloadPhoto(context.Background(), client, "https://example.com/photo.png", dest); err == nil {
+				t.Fatal("failed download must return error")
+			}
+			got, err := os.ReadFile(dest)
+			if err != nil || !bytes.Equal(got, original) {
+				t.Fatal("failed download replaced existing image")
+			}
+			files, err := os.ReadDir(dir)
+			if err != nil || len(files) != 1 {
+				t.Fatal("temporary download was not cleaned up")
+			}
+		})
 	}
 }

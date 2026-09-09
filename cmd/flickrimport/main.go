@@ -3,10 +3,15 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"net/http"
 	"net/url"
@@ -28,7 +33,7 @@ import (
 // - Fetches EXIF and tags for new or updated photos
 // - Writes raw JSON responses under data/flickr/photosets/{slug}.json
 // - Does NOT generate per-image markdown stubs.
-// - Uses remote staticflickr URLs unless explicit asset download mode is requested.
+// - Downloads gallery thumbnails and full-size images into assets/flickr.
 
 // Environment / flags
 //   FLICKR_API_KEY env var or -apikey flag
@@ -83,9 +88,11 @@ type PhotosetsGetPhotosResp struct {
 }
 
 type Photo struct {
-	ID          string `json:"id"`
-	Title       string `json:"title"`
-	Description struct {
+	ThumbnailAsset string `json:"thumbnail_asset,omitempty"`
+	FullAsset      string `json:"full_asset,omitempty"`
+	ID             string `json:"id"`
+	Title          string `json:"title"`
+	Description    struct {
 		Content string `json:"_content"`
 	} `json:"description"`
 	Tags       []string `json:"tags"`
@@ -156,6 +163,7 @@ type Config struct {
 	AssetsSetID    string
 	OAuthTokenFile string
 	InitOAuth      bool
+	FromCache      bool
 }
 
 func main() {
@@ -176,15 +184,17 @@ func main() {
 	ctx := context.Background()
 
 	// Create HTTP client (with OAuth if token file exists)
-	client, err := createHTTPClient(cfg)
-	if err != nil {
-		fatal(err)
+	imageClient := &http.Client{Timeout: cfg.HTTPTimeout}
+	client := imageClient
+	var err error
+	if cfg.FromCache && cfg.DownloadAssets {
+		fatal(fmt.Errorf("-fromCache cannot be combined with -downloadAssets"))
 	}
-
-	// For non-OAuth operations, fall back to API key
-	if cfg.APIKey == "" && (cfg.ConsumerKey == "" || cfg.ConsumerSecret == "") {
-		fmt.Fprintln(os.Stderr, "FLICKR_API_KEY not set; pass -apikey or env var, or use OAuth with -initOAuth")
-		os.Exit(1)
+	if !cfg.FromCache {
+		client, err = createHTTPClient(cfg)
+		if err != nil {
+			fatal(err)
+		}
 	}
 
 	// Download assets mode: fetch specific album and download originals
@@ -225,13 +235,26 @@ func main() {
 		fmt.Printf("Ingesting photoset %s (%s)\n", g.PhotosetID, g.Slug)
 
 		// Fetch all photos in set with extras
-		ps, err := fetchPhotosetAll(ctx, client, cfg.APIKey, g.PhotosetID)
+		var ps *PhotosetsGetPhotosResp
+		jsonPath := filepath.Join("data", "flickr", "photosets", g.Slug+".json")
+		if cfg.FromCache {
+			var b []byte
+			b, err = os.ReadFile(jsonPath)
+			if err == nil {
+				ps = &PhotosetsGetPhotosResp{}
+				err = json.Unmarshal(b, ps)
+			}
+			if err == nil && (ps.Stat != "ok" || ps.Photoset.ID != g.PhotosetID) {
+				err = fmt.Errorf("invalid cached metadata for %s", g.Slug)
+			}
+		} else {
+			ps, err = fetchPhotosetAll(ctx, client, cfg.APIKey, g.PhotosetID)
+		}
 		if err != nil {
 			fatal(err)
 		}
 
 		// Detector: check for existing JSON and compare lastupdate
-		jsonPath := filepath.Join("data", "flickr", "photosets", g.Slug+".json")
 		var oldPhotos map[string]string // photoID -> lastupdate
 		var oldExif map[string]*PhotoExifFields
 		var oldTags map[string][]string // photoID -> tags
@@ -257,6 +280,9 @@ func main() {
 
 		// Only fetch EXIF and tags for new/updated photos
 		for i := range ps.Photoset.Photo {
+			if cfg.FromCache {
+				break
+			}
 			photo := &ps.Photoset.Photo[i]
 			oldDate, exists := oldPhotos[photo.ID]
 			if exists && oldDate == photo.LastUpdate && oldExif[photo.ID] != nil {
@@ -284,7 +310,12 @@ func main() {
 			time.Sleep(240 * time.Millisecond) // be polite
 		}
 
-		// Persist raw JSON for Hugo data consumption
+		// Static image requests must not carry the API client's OAuth credentials.
+		if err := downloadGalleryImages(ctx, imageClient, "assets", ps); err != nil {
+			fatal(fmt.Errorf("gallery %s: %w", g.Slug, err))
+		}
+
+		// Persist metadata only once both image sizes are available locally.
 		if err := writePhotosetJSON(g.Slug, ps); err != nil {
 			fatal(err)
 		}
@@ -312,6 +343,7 @@ func loadConfig() Config {
 	flag.StringVar(&cfg.AssetsSetID, "assetsSetID", "", "Photoset ID for assets download (required with -downloadAssets)")
 	flag.StringVar(&cfg.OAuthTokenFile, "tokenFile", defaultTokenFile, "Path to OAuth token file")
 	flag.BoolVar(&cfg.InitOAuth, "initOAuth", false, "Initialize OAuth flow to get access token")
+	flag.BoolVar(&cfg.FromCache, "fromCache", false, "Download gallery images using existing metadata without calling the Flickr API")
 	flag.Parse()
 
 	cfg.APIKey = apikey
@@ -846,12 +878,77 @@ func downloadAssets(ctx context.Context, client *http.Client, cfg Config) error 
 	return nil
 }
 
-// downloadPhoto downloads a photo from a URL to a local file
+func firstURL(urls ...string) string {
+	for _, u := range urls {
+		if u != "" {
+			return u
+		}
+	}
+	return ""
+}
+
+func downloadGalleryImages(ctx context.Context, client *http.Client, assetsDir string, ps *PhotosetsGetPhotosResp) error {
+	for i := range ps.Photoset.Photo {
+		p := &ps.Photoset.Photo[i]
+		for _, variant := range []struct {
+			name string
+			url  string
+			path *string
+		}{
+			{"thumbnail", firstURL(p.URLZ, p.URLC, p.URLM, p.URLL, p.URLH, p.URLK, p.URLO), &p.ThumbnailAsset},
+			{"full", firstURL(p.URLK, p.URLH, p.URLL, p.URLC, p.URLZ, p.URLO), &p.FullAsset},
+		} {
+			u, err := url.Parse(variant.url)
+			if err != nil || u.Host == "" || (u.Scheme != "https" && u.Scheme != "http") {
+				return fmt.Errorf("photo %s: missing or invalid %s URL", p.ID, variant.name)
+			}
+			// Flickr replacement images have new URLs. Key by the complete source
+			// URL so metadata edits don't trigger downloads and albums share files.
+			ext := strings.ToLower(filepath.Ext(u.Path))
+			switch ext {
+			case ".jpg", ".jpeg", ".png", ".gif":
+			default:
+				return fmt.Errorf("photo %s: unsupported image extension %q", p.ID, ext)
+			}
+			asset := fmt.Sprintf("flickr/%x%s", sha256.Sum256([]byte(variant.url)), ext)
+			dest := filepath.Join(assetsDir, filepath.FromSlash(asset))
+			if err := validateImage(dest); err != nil {
+				if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
+					return err
+				}
+				fmt.Printf("Downloading photo %s (%s)\n", p.ID, variant.name)
+				if err := downloadPhoto(ctx, client, variant.url, dest); err != nil {
+					return fmt.Errorf("photo %s (%s): %w", p.ID, variant.name, err)
+				}
+			}
+			*variant.path = asset
+		}
+	}
+	return nil
+}
+
+func validateImage(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, _, err = image.Decode(f)
+	return err
+}
+
+// downloadPhoto publishes only complete, valid images, leaving existing files
+// intact on failure and ensuring interrupted downloads cannot poison the cache.
 func downloadPhoto(ctx context.Context, client *http.Client, photoURL, destPath string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, photoURL, nil)
 	if err != nil {
 		return err
 	}
+	// Images are already compressed. Flickr's CDN can return 502 when Go's
+	// default transport requests gzip, so request the original image bytes.
+	req.Header.Set("Accept-Encoding", "identity")
+	req.Header.Set("User-Agent", "woodworking-flickrimport")
+	req.Header.Set("Accept", "*/*")
 
 	resp, err := doRequestWithBackoff(client, req)
 	if err != nil {
@@ -863,14 +960,25 @@ func downloadPhoto(ctx context.Context, client *http.Client, photoURL, destPath 
 		return fmt.Errorf("http %d", resp.StatusCode)
 	}
 
-	// Create the file
-	out, err := os.Create(destPath)
+	out, err := os.CreateTemp(filepath.Dir(destPath), ".flickr-download-*")
 	if err != nil {
 		return err
 	}
 	defer out.Close()
+	defer os.Remove(out.Name())
 
 	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	return err
+	if _, err := io.Copy(out, resp.Body); err != nil {
+		return err
+	}
+	if err := out.Close(); err != nil {
+		return err
+	}
+	if err := validateImage(out.Name()); err != nil {
+		return fmt.Errorf("invalid downloaded image: %w", err)
+	}
+	if err := os.Chmod(out.Name(), 0o644); err != nil {
+		return err
+	}
+	return os.Rename(out.Name(), destPath)
 }

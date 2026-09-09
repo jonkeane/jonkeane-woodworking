@@ -4,7 +4,8 @@
 <meta property="og:url" content="{{ .Permalink | absURL }}" />
 
 {{ if .Params.flickr_id }}
-  <meta property="og:image" content="{{ or .Params.url_l .Params.url_h .Params.url_z }}" />
+  {{ $image := partial "photo/image.html" (dict "page" . "variant" "full") }}
+  <meta property="og:image" content="{{ $image.Permalink }}" />
 {{ else }}
 {{- $images := $.Resources.ByType "image" -}}
 {{ $featured := ($images.GetMatch (.Params.featured_image | default "*feature*")) | default (index $images 0) }}

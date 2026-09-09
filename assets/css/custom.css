@@ -54,8 +54,38 @@ body:has(.flickr-photo) > footer { display: none; }
 .photo-nav { display: grid; grid-template-columns: 1fr 2fr 1fr; align-items: center; gap: 1rem; }
 .photo-nav > :nth-child(2) { text-align: center; overflow-wrap: anywhere; }
 .photo-nav > :last-child { text-align: right; }
-.flickr-photo > figure { min-height: 0; min-width: 0; }
+.flickr-photo > figure { position: relative; min-height: 0; min-width: 0; }
 .photo-full { width: 100%; height: 100%; object-fit: contain; touch-action: pan-y pinch-zoom; }
+.photo-swiper {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+}
+.photo-swiper.swiper-initialized {
+    visibility: visible;
+    touch-action: none;
+}
+.photo-swiper .swiper-zoom-container img { padding: 0; }
+.flickr-photo figure:has(.swiper-initialized) > .photo-original { visibility: hidden; }
+html.photo-only .flickr-photo {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    padding: 0 !important;
+    background: #000;
+}
+html.photo-only .flickr-photo > :not(figure),
+html.photo-only .flickr-photo .photo-drawer { display: none; }
+html.photo-only .flickr-photo > figure {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+}
 .photo-drawer {
     --photo-drawer-background: #fff;
     position: fixed;

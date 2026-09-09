@@ -1,0 +1,7 @@
+{{- $page := .page -}}
+{{- $image := partial "photo/image.html" (dict "page" $page "variant" "full") -}}
+<div class="swiper-slide" data-photo-url="{{ $page.RelPermalink }}"{{ if .current }} data-current="true"{{ else }} aria-hidden="true"{{ end }}>
+  <div class="swiper-zoom-container">
+    <img class="photo-full" src="{{ $image.RelPermalink }}" alt="{{ $page.Description | default $page.Title }}" loading="{{ if .current }}eager{{ else }}lazy{{ end }}" decoding="async" />
+  </div>
+</div>
