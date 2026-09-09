@@ -11,8 +11,12 @@ the site's menu, while photo pages use Swiper for swipe navigation, pinch zoom,
 and panning. Explicit prefetching of adjacent pages and images is disabled. Each
 photo page keeps its ordinary image as a no-JavaScript fallback.
 Double-clicking or double-tapping the viewer opens an image-only viewport; press
-Escape or repeat the gesture to restore the page controls. Mouse dragging and
-horizontal trackpad gestures navigate on desktop.
+Escape, use the visible Close button, or repeat the gesture to restore the page
+controls and reset image zoom. Desktop trackpad pinches and Control-scroll over
+the viewer zoom the image; Escape also resets zoom in the normal view. With the
+viewer focused, +/− zoom and 0 resets. Mouse dragging and horizontal trackpad
+gestures navigate on desktop. The thumbnail
+strip centers the current photo, including after resizing or leaving image-only view.
 
 ## Development
 
