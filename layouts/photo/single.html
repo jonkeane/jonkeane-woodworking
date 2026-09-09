@@ -11,10 +11,10 @@
       <a href="{{ .Parent.RelPermalink }}">{{ .Parent.Title }}</a>
       <span>{{ if lt (add $position 1) (len $photos) }}{{ with index $photos (add $position 1) }}<a rel="next" href="{{ .RelPermalink }}">Next →</a>{{ end }}{{ end }}</span>
     </nav>
-    {{ $url := or .Params.url_k .Params.url_h .Params.url_l .Params.url_c .Params.url_z .Params.url_o }}
+    {{ $image := partial "photo/image.html" (dict "page" . "variant" "full") }}
     <figure>
       {{/* Preserve the ordinary image for intrinsic sizing and as the no-JavaScript fallback. */}}
-      <img class="photo-full photo-original" src="{{ $url }}" alt="{{ .Description | default .Title }}" fetchpriority="high" />
+      <img class="photo-full photo-original" src="{{ $image.RelPermalink }}" alt="{{ .Description | default .Title }}" fetchpriority="high" />
       <div class="swiper photo-swiper" tabindex="0" role="region" aria-label="Photo viewer">
         <div class="swiper-wrapper">
           {{ if gt $position 0 }}
@@ -43,7 +43,7 @@
               </ul>
             {{ end }}
             {{ with .Params.tags }}<p class="photo-tags">{{ range . }}<span class="photo-tag">{{ . }}</span> {{ end }}</p>{{ end }}
-            <p><a href="{{ .Params.url_o | default $url }}">Original image</a></p>
+            <p><a href="{{ $image.RelPermalink }}">Full-size image</a></p>
           </div>
         </details>
       </figcaption>
@@ -51,7 +51,8 @@
     <nav class="photo-strip" aria-label="Project photos">
       {{ range $photos }}
         <a href="{{ .RelPermalink }}" {{ if eq .RelPermalink $current.RelPermalink }}aria-current="page"{{ end }}>
-          <img src="{{ or .Params.url_sq .Params.url_s .Params.url_z }}" alt="{{ .Title }}" loading="lazy" />
+          {{ $thumbnail := partial "photo/image.html" (dict "page" . "variant" "thumbnail") }}
+          <img src="{{ $thumbnail.RelPermalink }}" alt="{{ .Title }}" loading="lazy" />
         </a>
       {{ end }}
     </nav>

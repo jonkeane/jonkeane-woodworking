@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: '0 0 * * 0,3'
   workflow_dispatch:
     inputs:
       deploy_target:
@@ -15,7 +15,7 @@ on:
         default: none
         options: [none, preview, production]
       clear_cache:
-        description: Clear Flickr metadata cache
+        description: Clear Flickr metadata and image cache
         type: boolean
         default: false
 
@@ -48,13 +48,15 @@ jobs:
           cache: npm
       - name: Test importer
         run: go test ./cmd/flickrimport
-      - name: Restore Flickr metadata
+      - name: Restore Flickr metadata and images
         if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.clear_cache) && github.event.pull_request.head.repo.fork != true }}
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
-          path: data/flickr
-          key: flickr-data-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: flickr-data-${{ runner.os }}-
+          path: |
+            data/flickr
+            assets/flickr
+          key: flickr-local-v1-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: flickr-local-v1-${{ runner.os }}-
       - name: Import Flickr photos
         if: github.event.pull_request.head.repo.fork != true
         env:
@@ -79,6 +81,14 @@ jobs:
       - name: Build site
         if: github.event.pull_request.head.repo.fork != true
         run: npm run build
+      - name: Save Flickr metadata and images
+        if: github.event.pull_request.head.repo.fork != true
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            data/flickr
+            assets/flickr
+          key: flickr-local-v1-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Deploy to Netlify
         id: deploy
         if: ${{ github.event.pull_request.head.repo.fork != true && (github.event_name != 'workflow_dispatch' || inputs.deploy_target != 'none') }}

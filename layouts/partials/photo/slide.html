@@ -1,7 +1,7 @@
 {{- $page := .page -}}
-{{- $url := or $page.Params.url_k $page.Params.url_h $page.Params.url_l $page.Params.url_c $page.Params.url_z $page.Params.url_o -}}
+{{- $image := partial "photo/image.html" (dict "page" $page "variant" "full") -}}
 <div class="swiper-slide" data-photo-url="{{ $page.RelPermalink }}"{{ if .current }} data-current="true"{{ else }} aria-hidden="true"{{ end }}>
   <div class="swiper-zoom-container">
-    <img class="photo-full" src="{{ $url }}" alt="{{ $page.Description | default $page.Title }}" loading="{{ if .current }}eager{{ else }}lazy{{ end }}" decoding="async" />
+    <img class="photo-full" src="{{ $image.RelPermalink }}" alt="{{ $page.Description | default $page.Title }}" loading="{{ if .current }}eager{{ else }}lazy{{ end }}" decoding="async" />
   </div>
 </div>

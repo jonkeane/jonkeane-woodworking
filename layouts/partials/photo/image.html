@@ -1,0 +1,9 @@
+{{- $path := index .page.Params (printf "%s_asset" .variant) | default "" -}}
+{{- $image := false -}}
+{{- with $path -}}
+  {{- $image = resources.Get . -}}
+{{- end -}}
+{{- if not $image -}}
+  {{- errorf "Missing local Flickr %s image for %s. Run go run ./cmd/flickrimport (or -fromCache with existing metadata)." .variant .page.Path -}}
+{{- end -}}
+{{- return $image -}}
