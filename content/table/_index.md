@@ -4,5 +4,5 @@ description: A table designed to slide over a lounge chair. Minimalist, with a f
 weight: 7
 sort_by: Name # Exif.Date
 sort_order: desc
-flickr_album: "72177720335484678"
+r2_gallery_id: "695229124f3e0b40eca3c58ba57262e8-9744109-9919426"
 ---

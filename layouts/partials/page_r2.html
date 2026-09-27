@@ -3,7 +3,7 @@
   {{ $items := slice }}
   {{ range .RegularPages.ByWeight }}
     {{ $page := . }}
-    {{ $thumbnail := partial "photo/image.html" (dict "page" $page "variant" "thumbnail") }}
+    {{ $thumbnail := partial "photo/image.html" (dict "page" $page "variant" "gallery") }}
     {{ $width := $thumbnail.Width }}
     {{ $height := $thumbnail.Height }}
     {{ $items = $items | append (dict "page" $page "src" $thumbnail.RelPermalink "width" $width "height" $height) }}

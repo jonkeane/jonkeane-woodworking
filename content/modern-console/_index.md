@@ -4,5 +4,5 @@ description: A modern console in maple — I've described the idea for this as a
 weight: 6
 sort_by: Name # Exif.Date
 sort_order: desc
-flickr_album: "72177720310409839"
+r2_gallery_id: "695229124f3e0b40eca3c58ba57262e8-9744109-9919402"
 ---

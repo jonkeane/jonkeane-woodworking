@@ -18,8 +18,13 @@ hugo.linux
 # also the vendored go modules
 /_vendor/
 
-# Build-time Flickr metadata, images, and importer
+# Build-time R2 manifest snapshots
+/data/r2/galleries/
+
+# Legacy local Flickr cache (never commit)
 /data/flickr/
 /assets/flickr/
-/flickrimport
 /.flickr_oauth_token
+
+# Python bytecode
+__pycache__/

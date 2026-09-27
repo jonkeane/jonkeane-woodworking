@@ -4,5 +4,5 @@ description: An oak mount for a model Concorde — I've always been obsessed wit
 weight: 5
 sort_by: Name # Exif.Date
 sort_order: desc
-flickr_album: "72177720313000356"
+r2_gallery_id: "695229124f3e0b40eca3c58ba57262e8-9744109-9919566"
 ---

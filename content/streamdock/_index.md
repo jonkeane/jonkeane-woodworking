@@ -4,5 +4,5 @@ description: A custom stream deck holder and mic stand in walnut — I had some 
 weight: 2
 sort_by: Name # Exif.Date
 sort_order: desc
-flickr_album: "72177720310814323"
+r2_gallery_id: "695229124f3e0b40eca3c58ba57262e8-9744109-9919480"
 ---

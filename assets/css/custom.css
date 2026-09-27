@@ -10,7 +10,7 @@
     margin-top: auto;
     margin-bottom: 0px;
 }
-/* CSS lays out galleries using the dimensions saved by the Flickr importer. */
+/* CSS lays out galleries using the dimensions saved in the R2 manifest. */
 .flickr-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));

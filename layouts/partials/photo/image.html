@@ -1,9 +1,7 @@
-{{- $path := index .page.Params (printf "%s_asset" .variant) | default "" -}}
-{{- $image := false -}}
-{{- with $path -}}
-  {{- $image = resources.Get . -}}
+{{- $source := index .page.Params (printf "%s_source" .variant) | default "" -}}
+{{- $width := index .page.Params (printf "%s_width" .variant) | default 0 -}}
+{{- $height := index .page.Params (printf "%s_height" .variant) | default 0 -}}
+{{- if or (not $source) (le (int $width) 0) (le (int $height) 0) -}}
+  {{- errorf "Missing R2 %s image or dimensions for %s. Run npm run import:r2." .variant .page.Path -}}
 {{- end -}}
-{{- if not $image -}}
-  {{- errorf "Missing local Flickr %s image for %s. Run go run ./cmd/flickrimport (or -fromCache with existing metadata)." .variant .page.Path -}}
-{{- end -}}
-{{- return $image -}}
+{{- return (dict "RelPermalink" $source "Permalink" $source "Width" $width "Height" $height) -}}
