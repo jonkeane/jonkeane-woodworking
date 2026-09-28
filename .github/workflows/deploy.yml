@@ -27,20 +27,20 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.event_name == 'pull_request' && format('preview-pr-{0}', github.event.pull_request.number) || (github.event_name == 'push' || inputs.deploy_target == 'production') && 'production' || format('preview-manual-{0}', github.run_number) }}
+      name: ${{ github.event_name == 'pull_request' && format('preview-pr-{0}', github.event.pull_request.number) || (github.event_name == 'push' || github.event_name == 'schedule' || inputs.deploy_target == 'production') && 'production' || format('preview-manual-{0}', github.run_number) }}
       url: ${{ steps.deploy.outputs.deploy_url }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.26.0'
+          go-version-file: go.mod
       - uses: peaceiris/actions-hugo@v3
         with:
           hugo-version: '0.152.2'
           extended: true
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: .node-version
           cache: npm
       - name: Import R2 galleries
         if: github.event.pull_request.head.repo.fork != true
@@ -62,7 +62,7 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          DEPLOY_PRODUCTION: ${{ github.event_name == 'push' || inputs.deploy_target == 'production' }}
+          DEPLOY_PRODUCTION: ${{ github.event_name == 'push' || github.event_name == 'schedule' || inputs.deploy_target == 'production' }}
           DEPLOY_ALIAS: ${{ github.event_name == 'pull_request' && format('PR{0}', github.event.pull_request.number) || format('manual-{0}', github.run_number) }}
         run: |
           if [ "$DEPLOY_PRODUCTION" = 'true' ]; then

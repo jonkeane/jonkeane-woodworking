@@ -16,7 +16,8 @@ the gesture to restore the page controls.
 
 ## Publish and import
 
-Requires Go 1.26+, Hugo extended 0.152.2+, and Node 20+. The fixture tests
+Requires the Go version in `go.mod`, Hugo extended at the minimum version in
+`hugo.toml`, and the Node version in `.node-version`. The fixture tests
 also use Python 3.
 
 1. Publish each woodworking collection with publish-to-r2 from Lightroom. In
