@@ -3,9 +3,12 @@
 <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}" />
 <meta property="og:url" content="{{ .Permalink | absURL }}" />
 
-{{ if .Params.flickr_id }}
+{{ if .Params.photo_id }}
   {{ $image := partial "photo/image.html" (dict "page" . "variant" "full") }}
   <meta property="og:image" content="{{ $image.Permalink }}" />
+{{ else if .Params.r2_gallery_id }}
+  {{ $cover := partial "r2/cover.html" . }}
+  <meta property="og:image" content="{{ $cover.gallery }}" />
 {{ else }}
 {{- $images := $.Resources.ByType "image" -}}
 {{ $featured := ($images.GetMatch (.Params.featured_image | default "*feature*")) | default (index $images 0) }}

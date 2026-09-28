@@ -4,5 +4,5 @@ description: Our guest room is small, so we needed a space-optimized solution fo
 weight: 1
 sort_by: Name # Exif.Date
 sort_order: desc
-flickr_album: "72177720311976283"
+r2_gallery_id: "695229124f3e0b40eca3c58ba57262e8-9744109-9919326"
 ---

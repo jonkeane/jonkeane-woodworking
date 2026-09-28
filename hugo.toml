@@ -6,6 +6,18 @@ defaultContentLanguage = "en"
 enableRobotsTXT = true
 timeZone = "America/Chicago"
 baseURL = "https://mokkou.jonkeane.com"
+disableAliases = true
+
+[mediaTypes]
+  [mediaTypes.'text/redirects']
+    delimiter = ''
+
+[outputFormats]
+  [outputFormats.redirects]
+    baseName = '_redirects'
+    isPlainText = true
+    mediaType = 'text/redirects'
+    root = true
 
 [params]
   title = "jonkeane の mokkō"
@@ -15,8 +27,7 @@ baseURL = "https://mokkou.jonkeane.com"
   favicon = "favicons/"
 
 
-[params.flickr]
-  user_id = "65556368@N00"
+[params.r2]
   blocked_tags = ["nogallery"]
 
 [services]
@@ -28,7 +39,7 @@ baseURL = "https://mokkou.jonkeane.com"
 
 [outputs]
   page = ["HTML"]
-  home = ["HTML", "RSS"]
+  home = ["HTML", "RSS", "redirects"]
   section = ["HTML"]
 
 [imaging]

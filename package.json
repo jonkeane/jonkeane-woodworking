@@ -23,9 +23,9 @@
   },
   "private": "true",
   "scripts": {
-    "build": "hugo --gc --minify",
+    "build": "hugo --gc --minify --cleanDestinationDir",
     "dev": "hugo server",
-    "import:flickr": "go run ./cmd/flickrimport",
-    "test": "go test ./cmd/flickrimport && python3 scripts/test-gallery.py && node --test scripts/test-photo-swiper.cjs"
+    "import:r2": "R2_PUBLIC_BASE_URL=${R2_PUBLIC_BASE_URL:-https://jonkeane.link} go run github.com/jonkeane/publish-to-r2/uploader/cmd/r2import@ec3155550d426255193d4581b54074808ad6a0fe -content-dir content",
+    "test": "python3 scripts/test-gallery.py && node --test scripts/test-photo-swiper.cjs"
   }
 }

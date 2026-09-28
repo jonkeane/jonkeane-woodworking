@@ -1,11 +1,10 @@
 [build]
-command = "hugo mod vendor && npm ci && npm run import:flickr && npm run build"
+command = "hugo mod vendor && npm ci && npm run import:r2 && npm run build"
 publish = "public"
 
 [build.environment]
-GO_VERSION = "1.23.0"
+GO_VERSION = "1.26.0"
 HUGO_VERSION = "0.152.2"
-NODE_VERSION = "20"
 
 [dev]
 command = "npm run dev"

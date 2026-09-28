@@ -1,33 +1,69 @@
-{{/* Generate photo pages only for configured projects, ignoring stale cached albums. */}}
+{{/* Generate photo pages from configured R2 manifests; retain project URLs and order. */}}
 {{ range readDir "content" }}
   {{ $slug := .Name }}
   {{ $index := printf "content/%s/_index.md" $slug }}
   {{ if and .IsDir (fileExists $index) }}
     {{ $frontmatter := index (split (readFile $index) "---") 1 | transform.Unmarshal }}
-    {{ with $frontmatter.flickr_album }}
-      {{ $setID := string . }}
-      {{ $sets := site.Data.flickr.photosets | default dict }}
-      {{ $ps := index $sets $slug }}
-      {{ if not $ps }}
-        {{ errorf "Missing Flickr data for %s. Run go run ./cmd/flickrimport before building." $slug }}
-      {{ else if or (ne $ps.stat "ok") (ne (string $ps.photoset.id) $setID) }}
-        {{ errorf "Invalid Flickr data for %s; run go run ./cmd/flickrimport." $slug }}
+    {{ with $frontmatter.r2_gallery_id }}
+      {{ $galleryID := string . }}
+      {{ $galleries := site.Data.r2.galleries | default dict }}
+      {{ $manifest := index $galleries $slug }}
+      {{ if not $manifest }}
+        {{ errorf "Missing R2 manifest for %s. Run npm run import:r2 before building." $slug }}
+      {{ else if or (ne (int $manifest.schemaVersion) 1) (ne (string $manifest.galleryId) $galleryID) }}
+        {{ errorf "Invalid R2 manifest for %s; run npm run import:r2." $slug }}
       {{ else }}
-        {{ range $i, $photo := $ps.photoset.photo }}
-          {{ $blocked := intersect ($photo.tags | default slice) site.Params.flickr.blocked_tags }}
-          {{ if not $blocked }}
-            {{ $params := merge (dict
-              "flickr_id" $photo.id
-              "description" ($photo.description._content | plainify | htmlUnescape)
+        {{ $legacyIDs := index (site.Data.legacy_photo_ids | default dict) (lower $slug) | default dict }}
+        {{ range $i, $photo := $manifest.entries }}
+          {{ $blocked := intersect ($photo.tags | default slice) site.Params.r2.blocked_tags }}
+          {{ $cover := false }}
+          {{ range ($photo.tags | default slice) }}
+            {{ if eq (lower (strings.TrimSpace .)) "gallery-cover" }}{{ $cover = true }}{{ end }}
+          {{ end }}
+          {{ if and (not $blocked) (not $cover) }}
+            {{ $aliases := slice }}
+            {{ with index $legacyIDs (lower (string $photo.id)) }}
+              {{ $aliases = slice (printf "/%s/%s/" (lower $slug) .) }}
+            {{ end }}
+            {{ $thumbnail := $photo.source }}
+            {{ $thumbnailWidth := $photo.width }}
+            {{ $thumbnailHeight := $photo.height }}
+            {{ $gallery := $photo.source }}
+            {{ $galleryWidth := $photo.width }}
+            {{ $galleryHeight := $photo.height }}
+            {{ with $photo.renditions }}
+              {{ $thumbnail = .thumbnail.source }}
+              {{ $thumbnailWidth = .thumbnail.width }}
+              {{ $thumbnailHeight = .thumbnail.height }}
+              {{ $gallery = .gallery.source }}
+              {{ $galleryWidth = .gallery.width }}
+              {{ $galleryHeight = .gallery.height }}
+            {{ end }}
+            {{ $description := $photo.caption | default "" | plainify | htmlUnescape }}
+            {{ $params := dict
+              "photo_id" $photo.id
+              "description" $description
               "private" ($frontmatter.private | default false)
-            ) $photo }}
+              "tags" ($photo.tags | default slice)
+              "exif" ($photo.exif | default dict)
+              "full_source" $photo.source
+              "full_width" $photo.width
+              "full_height" $photo.height
+              "gallery_source" $gallery
+              "gallery_width" $galleryWidth
+              "gallery_height" $galleryHeight
+              "thumbnail_source" $thumbnail
+              "thumbnail_width" $thumbnailWidth
+              "thumbnail_height" $thumbnailHeight
+            }}
             {{ $.AddPage (dict
               "kind" "page"
               "path" (printf "%s/%s" $slug $photo.id)
               "title" ($photo.title | default "Untitled")
-              "description" ($photo.description._content | plainify | htmlUnescape)
+              "description" $description
               "type" "photo"
               "weight" (add $i 1)
+              "aliases" $aliases
               "params" $params
             ) }}
           {{ end }}

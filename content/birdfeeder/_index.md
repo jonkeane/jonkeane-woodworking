@@ -4,5 +4,5 @@ description: A birdfeeder in oak — Keith asked me to make a birdfeeder so I de
 weight: 4
 sort_by: Name # Exif.Date
 sort_order: desc
-flickr_album: "72177720311960844"
+r2_gallery_id: "695229124f3e0b40eca3c58ba57262e8-9744109-9919242"
 ---

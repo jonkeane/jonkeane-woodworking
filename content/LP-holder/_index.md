@@ -4,5 +4,5 @@ description: Ted found a record player at his parent's home and brought it home.
 weight: 3
 sort_by: Name # Exif.Date
 sort_order: desc
-flickr_album: "72177720308496538"
+r2_gallery_id: "695229124f3e0b40eca3c58ba57262e8-9744109-9919380"
 ---

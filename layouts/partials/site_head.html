@@ -57,7 +57,7 @@
   {{ $custom_css := resources.Get "css/custom.css" | css.PostCSS (dict "inlineImports" true) | resources.Minify | resources.Fingerprint }}
   <link rel="stylesheet" href="{{ $custom_css.RelPermalink }}" />
   {{ $script := "js/main.js" }}
-  {{ if or .Params.flickr_album (eq .Type "photo") }}
+  {{ if or .Params.r2_gallery_id (eq .Type "photo") }}
     {{ $script = "js/site.js" }}
   {{ end }}
   {{ $js := resources.Get $script | js.Build (dict "minify" true) | resources.Fingerprint }}

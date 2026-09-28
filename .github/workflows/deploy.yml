@@ -14,10 +14,6 @@ on:
         type: choice
         default: none
         options: [none, preview, production]
-      clear_cache:
-        description: Clear Flickr metadata and image cache
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -44,34 +40,13 @@ jobs:
           extended: true
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: .node-version
           cache: npm
-      - name: Test importer
-        run: go test ./cmd/flickrimport
-      - name: Restore Flickr metadata and images
-        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.clear_cache) && github.event.pull_request.head.repo.fork != true }}
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            data/flickr
-            assets/flickr
-          key: flickr-local-v1-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: flickr-local-v1-${{ runner.os }}-
-      - name: Import Flickr photos
+      - name: Import R2 galleries
         if: github.event.pull_request.head.repo.fork != true
         env:
-          FLICKR_API_KEY: ${{ secrets.FLICKR_API_KEY }}
-          FLICKR_CONSUMER_KEY: ${{ secrets.FLICKR_CONSUMER_KEY }}
-          FLICKR_CONSUMER_SECRET: ${{ secrets.FLICKR_CONSUMER_SECRET }}
-          FLICKR_OAUTH_TOKEN: ${{ secrets.FLICKR_OAUTH_TOKEN }}
-        run: |
-          token_file="$RUNNER_TEMP/flickr_oauth_token"
-          trap 'rm -f "$token_file"' EXIT
-          if [ -n "$FLICKR_OAUTH_TOKEN" ]; then
-            umask 077
-            printf '%s' "$FLICKR_OAUTH_TOKEN" > "$token_file"
-          fi
-          go run ./cmd/flickrimport -tokenFile "$token_file"
+          R2_PUBLIC_BASE_URL: ${{ vars.R2_PUBLIC_BASE_URL || secrets.R2_PUBLIC_BASE_URL || 'https://jonkeane.link' }}
+        run: npm run import:r2
       - name: Install site dependencies
         run: |
           hugo mod vendor
@@ -81,14 +56,6 @@ jobs:
       - name: Build site
         if: github.event.pull_request.head.repo.fork != true
         run: npm run build
-      - name: Save Flickr metadata and images
-        if: github.event.pull_request.head.repo.fork != true
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            data/flickr
-            assets/flickr
-          key: flickr-local-v1-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Deploy to Netlify
         id: deploy
         if: ${{ github.event.pull_request.head.repo.fork != true && (github.event_name != 'workflow_dispatch' || inputs.deploy_target != 'none') }}

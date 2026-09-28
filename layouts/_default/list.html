@@ -1,8 +1,8 @@
 {{ define "main" }}
   {{ partial "page_header.html" . }}
-  {{ if .Params.flickr_album }}
-    {{ partial "page_flickr.html" . }}
-  {{ else }}
+  {{ if .IsHome }}
     {{ partial "page_albums.html" . }}
+  {{ else }}
+    {{ partial "page_r2.html" . }}
   {{ end }}
 {{ end }}

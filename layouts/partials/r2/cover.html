@@ -1,0 +1,41 @@
+{{- $slug := path.Base .File.Dir -}}
+{{- $manifest := index (site.Data.r2.galleries | default dict) $slug -}}
+{{- if not $manifest -}}
+  {{- errorf "Missing R2 manifest for cover of %s. Run npm run import:r2." $slug -}}
+{{- end -}}
+{{- $cover := dict -}}
+{{- range $manifest.entries -}}
+  {{- $marked := false -}}
+  {{- range (.tags | default slice) -}}
+    {{- if eq (lower (strings.TrimSpace .)) "gallery-cover" -}}
+      {{- $marked = true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if $marked -}}
+    {{- if $cover -}}
+      {{- errorf "R2 gallery %s has more than one gallery-cover photo; keep the keyword on one photo and republish." $slug -}}
+    {{- end -}}
+    {{- $cover = . -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $cover -}}
+  {{- errorf "R2 gallery %s has no gallery-cover photo; mark one in Lightroom and republish." $slug -}}
+{{- end -}}
+{{- $gallery := $cover.source -}}
+{{- $galleryWidth := $cover.width -}}
+{{- $galleryHeight := $cover.height -}}
+{{- $thumbnail := $cover.source -}}
+{{- $thumbnailWidth := $cover.width -}}
+{{- with $cover.renditions -}}
+  {{- $gallery = .gallery.source -}}
+  {{- $galleryWidth = .gallery.width -}}
+  {{- $galleryHeight = .gallery.height -}}
+  {{- $thumbnail = .thumbnail.source -}}
+  {{- $thumbnailWidth = .thumbnail.width -}}
+{{- end -}}
+{{- return (dict
+  "source" $cover.source "width" $cover.width
+  "gallery" $gallery "galleryWidth" $galleryWidth "galleryHeight" $galleryHeight
+  "thumbnail" $thumbnail "thumbnailWidth" $thumbnailWidth
+  "alt" ($cover.alt | default $.Title)
+) -}}

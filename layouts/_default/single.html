@@ -1,7 +1,7 @@
 {{ define "main" }}
   {{- partial "page_header.html" . -}}
-  {{ if .Params.flickr_album }}
-    {{- partial "page_flickr.html" . -}}
+  {{ if .Params.r2_gallery_id }}
+    {{- partial "page_r2.html" . -}}
   {{ else }}
     {{- partial "page_gallery.html" . -}}
   {{ end }}
