@@ -1,0 +1,8 @@
+{{- range $page := site.RegularPages -}}
+  {{- range $page.Aliases -}}
+    {{- if findRE `\s` . -}}
+      {{- errorf "Photo alias %q contains whitespace" . -}}
+    {{- end -}}
+    {{- printf "%s %s 301\n" . $page.RelPermalink -}}
+  {{- end -}}
+{{- end -}}

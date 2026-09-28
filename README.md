@@ -55,10 +55,17 @@ photo pages. Exactly one `gallery-cover` photo is required per project.
 The separate homepage social-preview image at `content/B0000089.jpg` remains local.
 Missing or mismatched manifests fail the Hugo build for configured projects.
 
+`data/legacy_photo_ids.json` maps each current R2 photo UUID to its old Flickr
+ID. Hugo attaches the old photo URL as an alias and generates Netlify's
+`_redirects` file with a 301 for each matching photo. If a mapped UUID is no
+longer in its project's R2 manifest, Hugo omits that redirect without failing
+the build. If a photo gets a new UUID, update the mapping to preserve its old
+photo URL.
+
 All seven projects now have R2 gallery IDs.
 
 Run `npm test` to build an isolated fixture site and check gallery pages,
-photo URLs, navigation, tag filtering, and missing-manifest failures. The
+photo URLs, legacy redirects, navigation, tag filtering, and missing-manifest failures. The
 fixture does not modify real imported manifests.
 
 ## Deployment

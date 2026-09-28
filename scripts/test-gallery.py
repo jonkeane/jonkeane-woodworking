@@ -22,6 +22,9 @@ with tempfile.TemporaryDirectory(prefix="woodworking-gallery-") as tmp:
     data = site / "data/r2/galleries"
     data.mkdir(parents=True)
     projects = list((site / "content").glob("*/_index.md"))
+    (site / "data/legacy_photo_ids.json").write_text(json.dumps({
+        project.parent.name.lower(): {"101": "999", "missing-photo": "888"} for project in projects
+    }))
     for project in projects:
         slug = project.parent.name
         front = project.read_text()
@@ -51,8 +54,12 @@ with tempfile.TemporaryDirectory(prefix="woodworking-gallery-") as tmp:
     assert result.returncode == 0, result.stdout + result.stderr
     public = site / "public"
     home = (public / "index.html").read_text()
+    redirects = (public / "_redirects").read_text().splitlines()
+    assert len(redirects) == len(projects), redirects
     for project in projects:
         slug = project.parent.name.lower()
+        assert f"/{slug}/999/ /{slug}/101/ 301" in redirects
+        assert not any(f"/{slug}/888/" in redirect for redirect in redirects)
         assert f"/{slug}/" in home, f"Missing project card: {slug}"
         assert f"{BASE}/photos/test/104/gallery.jpg" in home
         gallery = (public / slug / "index.html").read_text()

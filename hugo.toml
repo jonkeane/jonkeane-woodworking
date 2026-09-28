@@ -6,6 +6,18 @@ defaultContentLanguage = "en"
 enableRobotsTXT = true
 timeZone = "America/Chicago"
 baseURL = "https://mokkou.jonkeane.com"
+disableAliases = true
+
+[mediaTypes]
+  [mediaTypes.'text/redirects']
+    delimiter = ''
+
+[outputFormats]
+  [outputFormats.redirects]
+    baseName = '_redirects'
+    isPlainText = true
+    mediaType = 'text/redirects'
+    root = true
 
 [params]
   title = "jonkeane の mokkō"
@@ -27,7 +39,7 @@ baseURL = "https://mokkou.jonkeane.com"
 
 [outputs]
   page = ["HTML"]
-  home = ["HTML", "RSS"]
+  home = ["HTML", "RSS", "redirects"]
   section = ["HTML"]
 
 [imaging]

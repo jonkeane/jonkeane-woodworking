@@ -13,6 +13,7 @@
       {{ else if or (ne (int $manifest.schemaVersion) 1) (ne (string $manifest.galleryId) $galleryID) }}
         {{ errorf "Invalid R2 manifest for %s; run npm run import:r2." $slug }}
       {{ else }}
+        {{ $legacyIDs := index (site.Data.legacy_photo_ids | default dict) (lower $slug) | default dict }}
         {{ range $i, $photo := $manifest.entries }}
           {{ $blocked := intersect ($photo.tags | default slice) site.Params.r2.blocked_tags }}
           {{ $cover := false }}
@@ -20,6 +21,10 @@
             {{ if eq (lower (strings.TrimSpace .)) "gallery-cover" }}{{ $cover = true }}{{ end }}
           {{ end }}
           {{ if and (not $blocked) (not $cover) }}
+            {{ $aliases := slice }}
+            {{ with index $legacyIDs (lower (string $photo.id)) }}
+              {{ $aliases = slice (printf "/%s/%s/" (lower $slug) .) }}
+            {{ end }}
             {{ $thumbnail := $photo.source }}
             {{ $thumbnailWidth := $photo.width }}
             {{ $thumbnailHeight := $photo.height }}
@@ -58,6 +63,7 @@
               "description" $description
               "type" "photo"
               "weight" (add $i 1)
+              "aliases" $aliases
               "params" $params
             ) }}
           {{ end }}
